@@ -89,7 +89,7 @@ export function SessionViewSwitcher({
             <button
               key="workspace-highlights"
               type="button"
-              aria-label={t`Highlights`}
+              aria-label="Highlights"
               aria-current={highlightsActive ? "page" : undefined}
               aria-pressed={highlightsActive}
               data-workspace-view="highlights"
@@ -101,7 +101,7 @@ export function SessionViewSwitcher({
                   : "text-muted-foreground/70 hover:bg-background/60 hover:text-foreground dark:hover:bg-accent/80 dark:hover:text-foreground",
               ])}
             >
-              {t`Highlights`}
+              Highlights
             </button>
           );
         }
@@ -157,6 +157,7 @@ export function SessionViewSwitcher({
           return (
             <HeaderViewRaw
               key={view.type}
+              label="Notes"
               sessionId={sessionId}
               isActive={!highlightsActive && currentTab.type === view.type}
               standalone={false}
