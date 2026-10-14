@@ -470,12 +470,24 @@ describe("SessionViewSwitcher", () => {
     expect(icon?.getAttribute("color")).toBe("#16a34a");
   });
 
-  it("hides the view switcher when the memo is the only view", () => {
+  it("keeps Notes and Highlights available when Notes is the only editor view", () => {
     renderSwitcher({ editorTabs: [{ type: "raw" }] });
 
     expect(
-      screen.queryByRole("group", { name: "Session note views" }),
-    ).toBeNull();
+      screen.getByRole("group", { name: "Session note views" }),
+    ).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Notes" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Highlights" })).not.toBeNull();
+  });
+
+  it("opens Highlights without changing the persisted editor tab", () => {
+    const onHighlightsViewChange = vi.fn();
+    const { handleTabChange } = renderSwitcher({ onHighlightsViewChange });
+
+    fireEvent.click(screen.getByRole("button", { name: "Highlights" }));
+
+    expect(onHighlightsViewChange).toHaveBeenCalledWith(true);
+    expect(handleTabChange).not.toHaveBeenCalled();
   });
 
   it.each([

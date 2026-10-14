@@ -8,6 +8,7 @@ import {
   useEffect,
   useImperativeHandle,
   useRef,
+  useState,
 } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
@@ -16,6 +17,7 @@ import { cn } from "@anlg/utils";
 
 import { Enhanced } from "./enhanced";
 import { Header, SessionViewSwitcher, useEditorTabs } from "./header";
+import { HighlightsView } from "./highlights";
 import { RawEditor } from "./raw";
 import { SearchBar } from "./search/bar";
 import { useSearch } from "./search/context";
@@ -162,6 +164,15 @@ const NoteInputContent = forwardRef<
   ) => {
     const internalEditorRef = useRef<NoteEditorRef>(null);
     const sessionId = tab.id;
+    const [isHighlightsView, setIsHighlightsView] = useState(false);
+    const currentTabKey =
+      currentTab.type === "enhanced" || currentTab.type === "shared"
+        ? `${currentTab.type}:${currentTab.id}`
+        : currentTab.type;
+    useEffect(() => {
+      setIsHighlightsView(false);
+    }, [sessionId, currentTabKey]);
+
     const deferredCurrentTab = useDeferredValue(currentTab);
     const renderedCurrentTab = editorTabs.some((editorTab) =>
       isSameEditorView(editorTab, deferredCurrentTab),
@@ -203,6 +214,7 @@ const NoteInputContent = forwardRef<
 
     const handleTabChange = useCallback(
       (tabView: TabEditorView) => {
+        setIsHighlightsView(false);
         if (
           isSameEditorView(tabView, currentTab) ||
           isSameEditorView(tabView, renderedCurrentTab)
@@ -214,6 +226,18 @@ const NoteInputContent = forwardRef<
         commitTabChange(tabView);
       },
       [commitTabChange, currentTab, onBeforeTabChange, renderedCurrentTab],
+    );
+
+    const handleHighlightsViewChange = useCallback(
+      (active: boolean) => {
+        if (active) {
+          // Flush editor edits before replacing the current editor surface with Highlights.
+          internalEditorRef.current?.flushPendingChanges();
+          onBeforeTabChange();
+        }
+        setIsHighlightsView(active);
+      },
+      [onBeforeTabChange],
     );
 
     const handleAdjacentViewShortcut = useCallback(
@@ -274,10 +298,12 @@ const NoteInputContent = forwardRef<
     const search = useSearch();
     const showSearchBar = search?.isVisible ?? false;
     const isEditableTab =
-      renderedCurrentTab.type === "enhanced" ||
-      renderedCurrentTab.type === "raw";
+      !isHighlightsView &&
+      (renderedCurrentTab.type === "enhanced" ||
+        renderedCurrentTab.type === "raw");
     const isSearchableTab =
-      isEditableTab || renderedCurrentTab.type === "transcript";
+      !isHighlightsView &&
+      (isEditableTab || renderedCurrentTab.type === "transcript");
 
     useEffect(() => {
       search?.close();
@@ -347,6 +373,8 @@ const NoteInputContent = forwardRef<
                 currentTab={renderedCurrentTab}
                 handleTabChange={handleTabChange}
                 isTranscribing={shouldShowTranscriptSpinner}
+                highlightsActive={isHighlightsView}
+                onHighlightsViewChange={handleHighlightsViewChange}
               />
               <Header sessionId={sessionId} />
             </div>
@@ -370,12 +398,13 @@ const NoteInputContent = forwardRef<
             className={cn([
               "h-full px-3",
               "pt-2",
-              renderedCurrentTab.type === "transcript"
+              !isHighlightsView && renderedCurrentTab.type === "transcript"
                 ? "overflow-hidden pb-0"
                 : "scroll-pb-20 overflow-x-hidden overflow-y-auto pb-24",
             ])}
           >
-            {renderedCurrentTab.type === "enhanced" && (
+            {isHighlightsView ? <HighlightsView sessionId={sessionId} /> : null}
+            {!isHighlightsView && renderedCurrentTab.type === "enhanced" && (
               <Enhanced
                 ref={internalEditorRef}
                 sessionId={sessionId}
@@ -386,7 +415,7 @@ const NoteInputContent = forwardRef<
                 onViewDisposed={handleSessionViewDisposed}
               />
             )}
-            {renderedCurrentTab.type === "raw" && (
+            {!isHighlightsView && renderedCurrentTab.type === "raw" && (
               <RawEditor
                 ref={internalEditorRef}
                 sessionId={sessionId}
@@ -399,10 +428,10 @@ const NoteInputContent = forwardRef<
                 onViewDisposed={handleSessionViewDisposed}
               />
             )}
-            {renderedCurrentTab.type === "shared" && (
+            {!isHighlightsView && renderedCurrentTab.type === "shared" && (
               <SharedNoteSummary shareId={renderedCurrentTab.id} />
             )}
-            {renderedCurrentTab.type === "transcript" && (
+            {!isHighlightsView && renderedCurrentTab.type === "transcript" && (
               <Transcript
                 sessionId={sessionId}
                 scrollRef={scrollRef}

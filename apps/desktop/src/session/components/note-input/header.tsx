@@ -33,6 +33,8 @@ export function SessionViewSwitcher({
   isTranscribing = false,
   transcriptEditMode = false,
   onTranscriptEditModeChange,
+  highlightsActive = false,
+  onHighlightsViewChange,
 }: {
   sessionId: string;
   editorTabs: EditorView[];
@@ -41,17 +43,35 @@ export function SessionViewSwitcher({
   isTranscribing?: boolean;
   transcriptEditMode?: boolean;
   onTranscriptEditModeChange?: (editMode: boolean) => void;
+  highlightsActive?: boolean;
+  onHighlightsViewChange?: (active: boolean) => void;
 }) {
   const { t } = useLingui();
   const primaryEnhancedTabId = editorTabs.find(
     (view): view is Extract<EditorView, { type: "enhanced" }> =>
       view.type === "enhanced",
   )?.id;
-  const shouldUseViewSwitcher = editorTabs.length > 1;
+  // Highlights is a UI-only view backed by the existing meeting capture records.
+  // It deliberately does not become a persisted EditorView.
+  const orderedViews: Array<EditorView | { type: "workspace-highlights" }> = [
+    ...editorTabs.filter((view) => view.type === "enhanced"),
+    ...editorTabs.filter((view) => view.type === "transcript"),
+    { type: "workspace-highlights" },
+    ...editorTabs.filter((view) => view.type === "raw"),
+    ...editorTabs.filter((view) => view.type === "shared"),
+    ...editorTabs.filter(
+      (view) =>
+        view.type !== "enhanced" &&
+        view.type !== "transcript" &&
+        view.type !== "raw" &&
+        view.type !== "shared",
+    ),
+  ];
 
-  if (!shouldUseViewSwitcher) {
-    return null;
-  }
+  const selectEditorView = (view: EditorView) => {
+    onHighlightsViewChange?.(false);
+    handleTabChange(view);
+  };
 
   return (
     <div
@@ -63,7 +83,29 @@ export function SessionViewSwitcher({
         "bg-foreground/10 dark:bg-accent/55 rounded-pill flex h-7 items-center gap-[2px] p-[2px] [corner-shape:round]",
       ])}
     >
-      {editorTabs.map((view, index) => {
+      {orderedViews.map((view) => {
+        if (view.type === "workspace-highlights") {
+          return (
+            <button
+              key="workspace-highlights"
+              type="button"
+              aria-label={t`Highlights`}
+              aria-current={highlightsActive ? "page" : undefined}
+              aria-pressed={highlightsActive}
+              data-workspace-view="highlights"
+              onClick={() => onHighlightsViewChange?.(true)}
+              className={cn([
+                "rounded-pill flex h-6 shrink-0 items-center justify-center px-2 text-xs font-medium transition-colors select-none [corner-shape:round]",
+                highlightsActive
+                  ? "text-foreground bg-white shadow-xs dark:bg-accent dark:text-foreground dark:shadow-none"
+                  : "text-muted-foreground/70 hover:bg-background/60 hover:text-foreground dark:hover:bg-accent/80 dark:hover:text-foreground",
+              ])}
+            >
+              {t`Highlights`}
+            </button>
+          );
+        }
+
         if (view.type === "enhanced") {
           return (
             <HeaderViewEnhanced
@@ -74,7 +116,13 @@ export function SessionViewSwitcher({
               onRemove={
                 view.id !== primaryEnhancedTabId
                   ? () => {
-                      const previousView = editorTabs[index - 1];
+                      const originalIndex = editorTabs.findIndex((candidate) =>
+                        sameEditorView(candidate, view),
+                      );
+                      const previousView =
+                        originalIndex > 0
+                          ? editorTabs[originalIndex - 1]
+                          : undefined;
                       if (
                         currentTab.type === "enhanced" &&
                         currentTab.id === view.id &&
@@ -96,9 +144,11 @@ export function SessionViewSwitcher({
                 handleTabChange({ type: "enhanced", id: enhancedNoteId })
               }
               isActive={
-                currentTab.type === "enhanced" && currentTab.id === view.id
+                !highlightsActive &&
+                currentTab.type === "enhanced" &&
+                currentTab.id === view.id
               }
-              onClick={() => handleTabChange(view)}
+              onClick={() => selectEditorView(view)}
             />
           );
         }
@@ -108,9 +158,9 @@ export function SessionViewSwitcher({
             <HeaderViewRaw
               key={view.type}
               sessionId={sessionId}
-              isActive={currentTab.type === view.type}
-              standalone={!shouldUseViewSwitcher}
-              onClick={() => handleTabChange(view)}
+              isActive={!highlightsActive && currentTab.type === view.type}
+              standalone={false}
+              onClick={() => selectEditorView(view)}
             />
           );
         }
@@ -120,11 +170,11 @@ export function SessionViewSwitcher({
             <HeaderViewTranscript
               key={view.type}
               sessionId={sessionId}
-              isActive={currentTab.type === view.type}
+              isActive={!highlightsActive && currentTab.type === view.type}
               isTranscribing={isTranscribing}
               editMode={transcriptEditMode}
               onEditModeChange={onTranscriptEditModeChange}
-              onClick={() => handleTabChange(view)}
+              onClick={() => selectEditorView(view)}
             />
           );
         }
@@ -134,9 +184,9 @@ export function SessionViewSwitcher({
             <HeaderViewShared
               key={`shared-${view.id}`}
               isActive={
-                currentTab.type === "shared" && currentTab.id === view.id
+                !highlightsActive && currentTab.type === "shared" && currentTab.id === view.id
               }
-              onClick={() => handleTabChange(view)}
+              onClick={() => selectEditorView(view)}
             />
           );
         }
@@ -169,4 +219,18 @@ export function useEditorTabs({
     canShowTranscript,
     sharedNoteIds,
   });
+}
+
+
+function sameEditorView(left: EditorView, right: EditorView): boolean {
+  if (left.type !== right.type) {
+    return false;
+  }
+  if (left.type === "enhanced" && right.type === "enhanced") {
+    return left.id === right.id;
+  }
+  if (left.type === "shared" && right.type === "shared") {
+    return left.id === right.id;
+  }
+  return true;
 }

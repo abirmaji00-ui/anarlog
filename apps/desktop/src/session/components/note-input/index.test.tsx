@@ -47,11 +47,15 @@ vi.mock("./header", () => ({
     editorTabs,
     handleTabChange,
     isTranscribing,
+    highlightsActive,
+    onHighlightsViewChange,
   }: {
     currentTab: EditorView;
     editorTabs: EditorView[];
     handleTabChange: (view: EditorView) => void;
     isTranscribing?: boolean;
+    highlightsActive?: boolean;
+    onHighlightsViewChange?: (active: boolean) => void;
   }) => (
     <div>
       <div data-testid="current-tab">{formatEditorView(currentTab)}</div>
@@ -65,6 +69,12 @@ vi.mock("./header", () => ({
           {formatEditorView(editorTab)}
         </button>
       ))}
+      <button
+        type="button"
+        onClick={() => onHighlightsViewChange?.(!highlightsActive)}
+      >
+        Highlights
+      </button>
     </div>
   ),
   useEditorTabs: () => hoisted.editorTabs,
@@ -88,6 +98,12 @@ vi.mock("./raw", async () => {
     }),
   };
 });
+
+vi.mock("./highlights", () => ({
+  HighlightsView: ({ sessionId }: { sessionId: string }) => (
+    <div data-testid="highlights-view" data-session-id={sessionId} />
+  ),
+}));
 
 vi.mock("./search/bar", () => ({
   SearchBar: () => <div data-testid="search-bar" />,
@@ -258,6 +274,21 @@ describe("NoteInput tab selection", () => {
 
     expect(handleTabChange).toHaveBeenCalledWith(expected);
     expect(hoisted.onBeforeTabChange).toHaveBeenCalledOnce();
+  });
+
+  it("shows Highlights without changing persisted editor tab state and returns to Notes", () => {
+    const { handleTabChange } = renderNoteInput();
+
+    fireEvent.click(screen.getByRole("button", { name: "Highlights" }));
+    expect(screen.getByTestId("highlights-view").getAttribute("data-session-id")).toBe("session-1");
+    expect(screen.queryByTestId("raw-editor")).toBeNull();
+    expect(screen.getByTestId("current-tab").textContent).toBe("raw");
+    expect(handleTabChange).not.toHaveBeenCalled();
+    expect(hoisted.updateSessionTabState).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "raw" }));
+    expect(screen.queryByTestId("highlights-view")).toBeNull();
+    expect(screen.getByTestId("raw-editor")).not.toBeNull();
   });
 
   it("reflects the parent-selected tab in the header", () => {
