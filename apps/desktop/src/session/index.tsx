@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { computeCurrentNoteTab } from "@anlg/utils/session";
 
 import { FloatingActionButton } from "./components/floating";
@@ -41,12 +42,11 @@ import { useSessionSharedNoteIds } from "~/shared-notes/event-keys";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
 import { useListener } from "~/stt/contexts";
 import { ScheduledSessionAutoStart } from "~/stt/scheduled-session-auto-start";
-import { useUploadFile } from "~/stt/useUploadFile";
 import {
   consumeSessionImport,
   subscribeSessionImportRequests,
 } from "~/stt/session-import-intent";
-import { toast } from "@anlg/ui/components/ui/toast";
+import { useUploadFile } from "~/stt/useUploadFile";
 
 export function TabContentNote({
   standaloneWindow = false,
@@ -184,7 +184,9 @@ function TabContentNoteInner({
       void start()
         .then((selected) => {
           if (!selected) {
-            toast.info("No file selected. The interview session is ready to use.");
+            toast.info(
+              "No file selected. The interview session is ready to use.",
+            );
             return;
           }
           toast.success(
