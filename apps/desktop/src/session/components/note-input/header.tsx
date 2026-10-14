@@ -223,7 +223,7 @@ export function useEditorTabs({
     sharedNoteIds,
   });
 }
- 
+
 function sameEditorView(left: EditorView, right: EditorView): boolean {
   if (left.type !== right.type) {
     return false;
