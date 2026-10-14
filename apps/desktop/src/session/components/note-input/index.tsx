@@ -163,6 +163,7 @@ const NoteInputContent = forwardRef<
     ref,
   ) => {
     const internalEditorRef = useRef<NoteEditorRef>(null);
+    const highlightsScrollTopRef = useRef<number | null>(null);
     const sessionId = tab.id;
     const [isHighlightsView, setIsHighlightsView] = useState(false);
     const currentTabKey =
@@ -231,13 +232,24 @@ const NoteInputContent = forwardRef<
     const handleHighlightsViewChange = useCallback(
       (active: boolean) => {
         if (active) {
+          highlightsScrollTopRef.current = scrollRef.current?.scrollTop ?? null;
           // Flush editor edits before replacing the current editor surface with Highlights.
           internalEditorRef.current?.flushPendingChanges();
           onBeforeTabChange();
+        } else {
+          const previousScrollTop = highlightsScrollTopRef.current;
+          if (previousScrollTop !== null) {
+            requestAnimationFrame(() => {
+              if (scrollRef.current) {
+                scrollRef.current.scrollTop = previousScrollTop;
+              }
+            });
+            highlightsScrollTopRef.current = null;
+          }
         }
         setIsHighlightsView(active);
       },
-      [onBeforeTabChange],
+      [onBeforeTabChange, scrollRef],
     );
 
     const handleAdjacentViewShortcut = useCallback(
