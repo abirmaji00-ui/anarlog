@@ -327,7 +327,6 @@ function TabContentNoteInner({
               currentView={currentView}
               tab={tab}
               standaloneWindow={standaloneWindow}
-              showTitleInputWithViewSwitcher={editorTabs.length <= 1}
               viewSwitcher={
                 <SessionViewSwitcher
                   sessionId={sessionId}
