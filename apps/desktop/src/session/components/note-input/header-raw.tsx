@@ -17,17 +17,19 @@ import {
 
 export function HeaderViewRaw({
   isActive,
+  label,
   onClick = () => {},
   sessionId,
   standalone = false,
 }: {
   isActive: boolean;
+  label?: string;
   onClick?: () => void;
   sessionId: string;
   standalone?: boolean;
 }) {
   const session = useSession(sessionId);
-  const standaloneLabel = standalone ? session?.title.trim() : undefined;
+  const standaloneLabel = standalone ? session?.title.trim() : label;
 
   if (!isActive) {
     return (
@@ -70,7 +72,7 @@ function HeaderViewRawButton({
   return (
     <IconHeaderView
       isActive={isActive}
-      label={label || t`Notes`}
+      label={label || t`Memos`}
       icon={<TextAlignLeft className="size-3.5" />}
       onClick={onClick}
       onContextMenu={onContextMenu}
