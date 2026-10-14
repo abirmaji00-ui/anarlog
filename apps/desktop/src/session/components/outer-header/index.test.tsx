@@ -466,11 +466,11 @@ describe("OuterHeader", () => {
       true,
     ],
     ["memo tab before recording", {}, {}, true],
-    ["view switcher is shown", {}, { tabs: true }, false],
-    ["transcript exists", { transcript: true }, {}, false],
-    ["meeting is over", { event: scheduled(), now: AFTER }, {}, false],
-    ["listening", { mode: "active" }, {}, false],
-    ["finalizing", { mode: "finalizing" }, {}, false],
+    ["view switcher is shown", {}, { tabs: true }, true],
+    ["transcript exists", { transcript: true }, {}, true],
+    ["meeting is over", { event: scheduled(), now: AFTER }, {}, true],
+    ["listening", { mode: "active" }, {}, true],
+    ["finalizing", { mode: "finalizing" }, {}, true],
   ])(
     "title input visibility when %s",
     (_label, scenario, { view, tabs }, visible) => {
