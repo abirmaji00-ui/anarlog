@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   leftsidebar: { expanded: true },
   sessionModes: {} as Record<string, string>,
   sessionEvents: {} as Record<string, any>,
+  sessionTitles: {} as Record<string, string>,
   nowMs: 0,
   openUrl: vi.fn(),
   startCallbackServer: vi.fn(),
@@ -33,7 +34,10 @@ vi.mock("../title-input", () => ({
 }));
 
 vi.mock("~/session/queries", () => ({
-  useSession: () => ({ folder_id: "" }),
+  useSession: (sessionId: string) => ({
+    folder_id: "",
+    title: mocks.sessionTitles[sessionId],
+  }),
   useFolderIcons: () => ({}),
   useFolderPaths: () => [],
   useUpdateSession: () => vi.fn(),
@@ -206,6 +210,7 @@ describe("OuterHeader", () => {
     mocks.leftsidebar.expanded = true;
     mocks.sessionModes = {};
     mocks.sessionEvents = {};
+    mocks.sessionTitles = {};
     mocks.nowMs = new Date(BEFORE).getTime();
     mocks.openUrl.mockClear();
     mocks.startCallbackServer.mockReset();
@@ -225,6 +230,38 @@ describe("OuterHeader", () => {
   afterEach(() => {
     cleanup();
     vi.useRealTimers();
+  });
+
+  it("shows persisted event context when it differs from the session title", () => {
+    mocks.sessionTitles = { "session-1": "Candidate screening" };
+    arrange({
+      event: {
+        title: "Backend Engineer interview",
+        description: "Initial interview for the backend role",
+      },
+    });
+
+    renderHeader({ withTab: true, viewSwitcher: <div>Workspace views</div> });
+
+    const context = document.querySelector("[data-session-event-context]");
+    expect(context?.textContent).toBe("Backend Engineer interview");
+    expect(context?.getAttribute("title")).toBe(
+      "Initial interview for the backend role",
+    );
+  });
+
+  it("does not repeat event context when it matches the session title", () => {
+    mocks.sessionTitles = { "session-1": "Backend Engineer interview" };
+    arrange({
+      event: {
+        title: "Backend Engineer interview",
+        description: "Initial interview for the backend role",
+      },
+    });
+
+    renderHeader({ withTab: true, viewSwitcher: <div>Workspace views</div> });
+
+    expect(document.querySelector("[data-session-event-context]")).toBeNull();
   });
 
   it.each<[string, Scenario, (typeof ACTIONS)[number] | null]>([
