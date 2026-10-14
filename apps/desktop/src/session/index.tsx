@@ -283,15 +283,19 @@ function TabContentNoteInner({
 
   const handleTabChange = React.useCallback(
     (view: typeof currentView) => {
+      if (isHighlightsView) {
+        noteInputRef.current?.setHighlightsView(false);
+      } else {
+        noteInputRef.current?.prepareForTabChange();
+      }
       setIsHighlightsView(false);
       if (view.type !== "transcript") {
         blurActiveTranscriptEditor();
         setEditingTranscriptSessionId(null);
       }
-      noteInputRef.current?.prepareForTabChange();
       updateSessionTabState(tab, { ...tab.state, view });
     },
-    [tab, updateSessionTabState],
+    [isHighlightsView, tab, updateSessionTabState],
   );
   const handleTranscriptEditModeChange = React.useCallback(
     (editMode: boolean) => {
