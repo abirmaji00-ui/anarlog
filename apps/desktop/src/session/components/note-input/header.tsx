@@ -97,7 +97,7 @@ export function SessionViewSwitcher({
               className={cn([
                 "rounded-pill flex h-6 shrink-0 items-center justify-center px-2 text-xs font-medium transition-colors select-none [corner-shape:round]",
                 highlightsActive
-                  ? "text-foreground bg-white shadow-xs dark:bg-accent dark:text-foreground dark:shadow-none"
+                  ? "text-foreground dark:bg-accent dark:text-foreground bg-white shadow-xs dark:shadow-none"
                   : "text-muted-foreground/70 hover:bg-background/60 hover:text-foreground dark:hover:bg-accent/80 dark:hover:text-foreground",
               ])}
             >
@@ -185,7 +185,9 @@ export function SessionViewSwitcher({
             <HeaderViewShared
               key={`shared-${view.id}`}
               isActive={
-                !highlightsActive && currentTab.type === "shared" && currentTab.id === view.id
+                !highlightsActive &&
+                currentTab.type === "shared" &&
+                currentTab.id === view.id
               }
               onClick={() => selectEditorView(view)}
             />
@@ -221,8 +223,7 @@ export function useEditorTabs({
     sharedNoteIds,
   });
 }
-
-
+ 
 function sameEditorView(left: EditorView, right: EditorView): boolean {
   if (left.type !== right.type) {
     return false;
