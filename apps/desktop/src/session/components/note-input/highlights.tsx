@@ -16,9 +16,7 @@ export function HighlightsView({ sessionId }: { sessionId: string }) {
       className="mx-auto w-full max-w-3xl pb-6"
     >
       <header className="mb-3 px-1">
-        <h1 className="text-foreground text-base font-semibold">
-          Highlights
-        </h1>
+        <h1 className="text-foreground text-base font-semibold">Highlights</h1>
         <p className="text-muted-foreground mt-1 text-sm">
           Review captured meeting chat and shared-screen evidence from this
           interview.
