@@ -283,7 +283,7 @@ describe("NoteInput tab selection", () => {
     expect(
       screen.getByTestId("highlights-view").getAttribute("data-session-id"),
     ).toBe("session-1");
-    expect(screen.queryByTestId("raw-editor")).toBeNull();
+    expect(screen.getByTestId("raw-editor").closest("[hidden]")).not.toBeNull();
     expect(screen.getByTestId("current-tab").textContent).toBe("raw");
     expect(handleTabChange).not.toHaveBeenCalled();
     expect(hoisted.updateSessionTabState).not.toHaveBeenCalled();
