@@ -1,5 +1,3 @@
-import { t } from "@lingui/core/macro";
-
 import { MeetingChatHighlights } from "./meeting-chat-highlights";
 import { MeetingScreenGallery } from "./meeting-screen-gallery";
 
@@ -13,16 +11,16 @@ export function HighlightsView({ sessionId }: { sessionId: string }) {
 
   return (
     <section
-      aria-label={t`Highlights`}
+      aria-label=Highlights
       data-interview-highlights
       className="mx-auto w-full max-w-3xl pb-6"
     >
       <header className="mb-3 px-1">
         <h1 className="text-foreground text-base font-semibold">
-          {t`Highlights`}
+          Highlights
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          {t`Review captured meeting chat and shared-screen evidence from this interview.`}
+          Review captured meeting chat and shared-screen evidence from this interview.
         </p>
       </header>
 
@@ -37,10 +35,10 @@ export function HighlightsView({ sessionId }: { sessionId: string }) {
           className="border-border/70 bg-muted/30 rounded-xl border px-4 py-6 text-center"
         >
           <p className="text-foreground text-sm font-medium">
-            {t`No highlights captured yet`}
+            No highlights captured yet
           </p>
           <p className="text-muted-foreground mt-1 text-sm">
-            {t`Shared screens and meeting chat appear here when they are available in the captured interview.`}
+            Shared screens and meeting chat appear here when they are available in the captured interview.
           </p>
         </div>
       )}
