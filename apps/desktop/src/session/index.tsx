@@ -282,7 +282,6 @@ function TabContentNoteInner({
   const handleTabChange = React.useCallback(
     (view: typeof currentView) => {
       setIsHighlightsView(false);
-      noteInputRef.current?.setHighlightsView(false);
       if (view.type !== "transcript") {
         blurActiveTranscriptEditor();
         setEditingTranscriptSessionId(null);
@@ -328,20 +327,21 @@ function TabContentNoteInner({
               currentView={currentView}
               tab={tab}
               standaloneWindow={standaloneWindow}
+              showTitleInputWithViewSwitcher={editorTabs.length <= 1}
               viewSwitcher={
                 <SessionViewSwitcher
-                    sessionId={sessionId}
-                    editorTabs={editorTabs}
-                    currentTab={currentView}
-                    handleTabChange={handleTabChange}
-                    isTranscribing={isTranscribing}
-                    transcriptEditMode={transcriptEditMode}
-                    onTranscriptEditModeChange={handleTranscriptEditModeChange}
-                    highlightsActive={isHighlightsView}
-                    onHighlightsViewChange={(active) =>
-                      noteInputRef.current?.setHighlightsView(active)
-                    }
-                  />
+                  sessionId={sessionId}
+                  editorTabs={editorTabs}
+                  currentTab={currentView}
+                  handleTabChange={handleTabChange}
+                  isTranscribing={isTranscribing}
+                  transcriptEditMode={transcriptEditMode}
+                  onTranscriptEditModeChange={handleTranscriptEditModeChange}
+                  highlightsActive={isHighlightsView}
+                  onHighlightsViewChange={(active) =>
+                    noteInputRef.current?.setHighlightsView(active)
+                  }
+                />
               }
             />
           )
