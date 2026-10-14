@@ -53,12 +53,14 @@ export function OuterHeader({
   tab,
   standaloneWindow = false,
   viewSwitcher,
+  showTitleInputWithViewSwitcher = false,
 }: {
   sessionId: string;
   currentView: EditorView;
   tab?: Extract<Tab, { type: "sessions" }>;
   standaloneWindow?: boolean;
   viewSwitcher?: React.ReactNode;
+  showTitleInputWithViewSwitcher?: boolean;
 }) {
   const { leftsidebar } = useShell();
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
@@ -78,7 +80,10 @@ export function OuterHeader({
   const isLiveMeeting = isRecording || sessionMode === "finalizing";
   const meetingOver = !isRecording && (ended || hasTranscript || audioExists);
   const showTitleInput =
-    Boolean(tab) && !viewSwitcher && !isLiveMeeting && !meetingOver;
+    Boolean(tab) &&
+    (!viewSwitcher || showTitleInputWithViewSwitcher) &&
+    !isLiveMeeting &&
+    !meetingOver;
 
   return (
     <div
