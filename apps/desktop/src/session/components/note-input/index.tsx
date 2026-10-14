@@ -244,6 +244,9 @@ const NoteInputContent = forwardRef<
 
     const handleHighlightsViewChange = useCallback(
       (active: boolean) => {
+        if (active === isHighlightsView) {
+          return;
+        }
         if (active) {
           highlightsScrollTopRef.current = scrollRef.current?.scrollTop ?? null;
           // Flush editor edits before replacing the current editor surface with Highlights.
@@ -263,7 +266,12 @@ const NoteInputContent = forwardRef<
         setIsHighlightsView(active);
         onHighlightsViewStateChange?.(active);
       },
-      [onBeforeTabChange, onHighlightsViewStateChange, scrollRef],
+      [
+        isHighlightsView,
+        onBeforeTabChange,
+        onHighlightsViewStateChange,
+        scrollRef,
+      ],
     );
     setHighlightsViewRef.current = handleHighlightsViewChange;
 
