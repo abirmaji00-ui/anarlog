@@ -44,6 +44,7 @@ export interface NoteInputHandle {
   replaceContent: (content: JSONContent) => void;
   flushPendingChanges: () => void;
   prepareForTabChange: () => void;
+  setHighlightsView: (active: boolean) => void;
 }
 
 type NoteInputProps = {
@@ -61,6 +62,7 @@ type NoteInputProps = {
   sessionMode?: SessionMode;
   transcriptEditMode?: boolean;
   onTranscriptEditModeChange?: (editMode: boolean) => void;
+  onHighlightsViewStateChange?: (active: boolean) => void;
 };
 
 export function shouldShowTranscriptTabSpinner(sessionMode: SessionMode) {
@@ -159,11 +161,13 @@ const NoteInputContent = forwardRef<
       sessionMode,
       transcriptEditMode = false,
       onTranscriptEditModeChange,
+      onHighlightsViewStateChange,
     },
     ref,
   ) => {
     const internalEditorRef = useRef<NoteEditorRef>(null);
     const highlightsScrollTopRef = useRef<number | null>(null);
+    const setHighlightsViewRef = useRef<(active: boolean) => void>(() => {});
     const sessionId = tab.id;
     const [isHighlightsView, setIsHighlightsView] = useState(false);
     const currentTabKey =
@@ -172,7 +176,8 @@ const NoteInputContent = forwardRef<
         : currentTab.type;
     useEffect(() => {
       setIsHighlightsView(false);
-    }, [sessionId, currentTabKey]);
+      onHighlightsViewStateChange?.(false);
+    }, [sessionId, currentTabKey, onHighlightsViewStateChange]);
 
     const deferredCurrentTab = useDeferredValue(currentTab);
     const renderedCurrentTab = editorTabs.some((editorTab) =>
@@ -209,6 +214,7 @@ const NoteInputContent = forwardRef<
         flushPendingChanges: () =>
           internalEditorRef.current?.flushPendingChanges(),
         prepareForTabChange: onBeforeTabChange,
+        setHighlightsView: (active) => setHighlightsViewRef.current(active),
       }),
       [currentTab, onBeforeTabChange],
     );
@@ -216,6 +222,7 @@ const NoteInputContent = forwardRef<
     const handleTabChange = useCallback(
       (tabView: TabEditorView) => {
         setIsHighlightsView(false);
+        onHighlightsViewStateChange?.(false);
         if (
           isSameEditorView(tabView, currentTab) ||
           isSameEditorView(tabView, renderedCurrentTab)
@@ -226,7 +233,13 @@ const NoteInputContent = forwardRef<
         onBeforeTabChange();
         commitTabChange(tabView);
       },
-      [commitTabChange, currentTab, onBeforeTabChange, renderedCurrentTab],
+      [
+        commitTabChange,
+        currentTab,
+        onBeforeTabChange,
+        onHighlightsViewStateChange,
+        renderedCurrentTab,
+      ],
     );
 
     const handleHighlightsViewChange = useCallback(
@@ -248,9 +261,11 @@ const NoteInputContent = forwardRef<
           }
         }
         setIsHighlightsView(active);
+        onHighlightsViewStateChange?.(active);
       },
-      [onBeforeTabChange, scrollRef],
+      [onBeforeTabChange, onHighlightsViewStateChange, scrollRef],
     );
+    setHighlightsViewRef.current = handleHighlightsViewChange;
 
     const handleAdjacentViewShortcut = useCallback(
       (direction: "previous" | "next") => {
