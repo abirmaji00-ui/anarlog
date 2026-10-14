@@ -170,11 +170,13 @@ const NoteInputContent = forwardRef<
     const setHighlightsViewRef = useRef<(active: boolean) => void>(() => {});
     const sessionId = tab.id;
     const [isHighlightsView, setIsHighlightsView] = useState(false);
+    const isHighlightsViewRef = useRef(false);
     const currentTabKey =
       currentTab.type === "enhanced" || currentTab.type === "shared"
         ? `${currentTab.type}:${currentTab.id}`
         : currentTab.type;
     useEffect(() => {
+      isHighlightsViewRef.current = false;
       setIsHighlightsView(false);
       onHighlightsViewStateChange?.(false);
     }, [sessionId, currentTabKey, onHighlightsViewStateChange]);
@@ -221,6 +223,7 @@ const NoteInputContent = forwardRef<
 
     const handleTabChange = useCallback(
       (tabView: TabEditorView) => {
+        isHighlightsViewRef.current = false;
         setIsHighlightsView(false);
         onHighlightsViewStateChange?.(false);
         if (
@@ -244,9 +247,10 @@ const NoteInputContent = forwardRef<
 
     const handleHighlightsViewChange = useCallback(
       (active: boolean) => {
-        if (active === isHighlightsView) {
+        if (active === isHighlightsViewRef.current) {
           return;
         }
+        isHighlightsViewRef.current = active;
         if (active) {
           highlightsScrollTopRef.current = scrollRef.current?.scrollTop ?? null;
           // Flush editor edits before replacing the current editor surface with Highlights.
@@ -266,12 +270,7 @@ const NoteInputContent = forwardRef<
         setIsHighlightsView(active);
         onHighlightsViewStateChange?.(active);
       },
-      [
-        isHighlightsView,
-        onBeforeTabChange,
-        onHighlightsViewStateChange,
-        scrollRef,
-      ],
+      [onBeforeTabChange, onHighlightsViewStateChange, scrollRef],
     );
     setHighlightsViewRef.current = handleHighlightsViewChange;
 
