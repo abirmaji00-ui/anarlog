@@ -20,7 +20,8 @@ export function HighlightsView({ sessionId }: { sessionId: string }) {
           Highlights
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Review captured meeting chat and shared-screen evidence from this interview.
+          Review captured meeting chat and shared-screen evidence from this
+          interview.
         </p>
       </header>
 
@@ -38,7 +39,8 @@ export function HighlightsView({ sessionId }: { sessionId: string }) {
             No highlights captured yet
           </p>
           <p className="text-muted-foreground mt-1 text-sm">
-            Shared screens and meeting chat appear here when they are available in the captured interview.
+            Shared screens and meeting chat appear here when they are available
+            in the captured interview.
           </p>
         </div>
       )}
