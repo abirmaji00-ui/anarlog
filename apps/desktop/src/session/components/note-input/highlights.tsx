@@ -11,7 +11,7 @@ export function HighlightsView({ sessionId }: { sessionId: string }) {
 
   return (
     <section
-      aria-label=Highlights
+      aria-label="Highlights"
       data-interview-highlights
       className="mx-auto w-full max-w-3xl pb-6"
     >
