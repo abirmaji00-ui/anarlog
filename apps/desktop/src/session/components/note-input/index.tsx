@@ -223,9 +223,14 @@ const NoteInputContent = forwardRef<
 
     const handleTabChange = useCallback(
       (tabView: TabEditorView) => {
-        isHighlightsViewRef.current = false;
-        setIsHighlightsView(false);
-        onHighlightsViewStateChange?.(false);
+        const wasHighlightsView = isHighlightsViewRef.current;
+        if (wasHighlightsView) {
+          setHighlightsViewRef.current(false);
+        } else {
+          isHighlightsViewRef.current = false;
+          setIsHighlightsView(false);
+          onHighlightsViewStateChange?.(false);
+        }
         if (
           isSameEditorView(tabView, currentTab) ||
           isSameEditorView(tabView, renderedCurrentTab)
@@ -233,7 +238,9 @@ const NoteInputContent = forwardRef<
           return;
         }
 
-        onBeforeTabChange();
+        if (!wasHighlightsView) {
+          onBeforeTabChange();
+        }
         commitTabChange(tabView);
       },
       [
