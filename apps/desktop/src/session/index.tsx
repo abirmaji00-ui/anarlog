@@ -163,6 +163,7 @@ function TabContentNoteInner({
   lockOverlay: React.ReactNode;
 }) {
   const noteInputRef = React.useRef<NoteInputHandle>(null);
+  const [isHighlightsView, setIsHighlightsView] = React.useState(false);
 
   const sessionId = tab.id;
   const session = useSession(sessionId);
@@ -280,6 +281,8 @@ function TabContentNoteInner({
 
   const handleTabChange = React.useCallback(
     (view: typeof currentView) => {
+      setIsHighlightsView(false);
+      noteInputRef.current?.setHighlightsView(false);
       if (view.type !== "transcript") {
         blurActiveTranscriptEditor();
         setEditingTranscriptSessionId(null);
@@ -326,8 +329,7 @@ function TabContentNoteInner({
               tab={tab}
               standaloneWindow={standaloneWindow}
               viewSwitcher={
-                editorTabs.length > 1 ? (
-                  <SessionViewSwitcher
+                <SessionViewSwitcher
                     sessionId={sessionId}
                     editorTabs={editorTabs}
                     currentTab={currentView}
@@ -335,8 +337,11 @@ function TabContentNoteInner({
                     isTranscribing={isTranscribing}
                     transcriptEditMode={transcriptEditMode}
                     onTranscriptEditModeChange={handleTranscriptEditModeChange}
+                    highlightsActive={isHighlightsView}
+                    onHighlightsViewChange={(active) =>
+                      noteInputRef.current?.setHighlightsView(active)
+                    }
                   />
-                ) : null
               }
             />
           )
@@ -385,6 +390,7 @@ function TabContentNoteInner({
                 sessionMode={sessionMode}
                 transcriptEditMode={transcriptEditMode}
                 onTranscriptEditModeChange={handleTranscriptEditModeChange}
+                onHighlightsViewStateChange={setIsHighlightsView}
                 hideHeader
               />
             ) : (
