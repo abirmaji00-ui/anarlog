@@ -69,7 +69,6 @@ export function SessionViewSwitcher({
   ];
 
   const selectEditorView = (view: EditorView) => {
-    onHighlightsViewChange?.(false);
     handleTabChange(view);
   };
 
