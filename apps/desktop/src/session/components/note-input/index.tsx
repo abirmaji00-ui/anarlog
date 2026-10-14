@@ -403,42 +403,44 @@ const NoteInputContent = forwardRef<
                 : "scroll-pb-20 overflow-x-hidden overflow-y-auto pb-24",
             ])}
           >
+            <div hidden={isHighlightsView} className="min-h-full">
+              {renderedCurrentTab.type === "enhanced" && (
+                <Enhanced
+                  ref={internalEditorRef}
+                  sessionId={sessionId}
+                  sessionTitle={sessionTitle}
+                  enhancedNoteId={renderedCurrentTab.id}
+                  onNavigateToTitle={onNavigateToTitle}
+                  onViewReady={handleSessionViewReady}
+                  onViewDisposed={handleSessionViewDisposed}
+                />
+              )}
+              {renderedCurrentTab.type === "raw" && (
+                <RawEditor
+                  ref={internalEditorRef}
+                  sessionId={sessionId}
+                  rawMd={rawMd}
+                  sessionTitle={sessionTitle}
+                  eventTitle={eventTitle}
+                  eventDescription={eventDescription}
+                  onNavigateToTitle={onNavigateToTitle}
+                  onViewReady={handleSessionViewReady}
+                  onViewDisposed={handleSessionViewDisposed}
+                />
+              )}
+              {renderedCurrentTab.type === "shared" && (
+                <SharedNoteSummary shareId={renderedCurrentTab.id} />
+              )}
+              {renderedCurrentTab.type === "transcript" && (
+                <Transcript
+                  sessionId={sessionId}
+                  scrollRef={scrollRef}
+                  editMode={transcriptEditMode}
+                  onEditModeChange={onTranscriptEditModeChange}
+                />
+              )}
+            </div>
             {isHighlightsView ? <HighlightsView sessionId={sessionId} /> : null}
-            {!isHighlightsView && renderedCurrentTab.type === "enhanced" && (
-              <Enhanced
-                ref={internalEditorRef}
-                sessionId={sessionId}
-                sessionTitle={sessionTitle}
-                enhancedNoteId={renderedCurrentTab.id}
-                onNavigateToTitle={onNavigateToTitle}
-                onViewReady={handleSessionViewReady}
-                onViewDisposed={handleSessionViewDisposed}
-              />
-            )}
-            {!isHighlightsView && renderedCurrentTab.type === "raw" && (
-              <RawEditor
-                ref={internalEditorRef}
-                sessionId={sessionId}
-                rawMd={rawMd}
-                sessionTitle={sessionTitle}
-                eventTitle={eventTitle}
-                eventDescription={eventDescription}
-                onNavigateToTitle={onNavigateToTitle}
-                onViewReady={handleSessionViewReady}
-                onViewDisposed={handleSessionViewDisposed}
-              />
-            )}
-            {!isHighlightsView && renderedCurrentTab.type === "shared" && (
-              <SharedNoteSummary shareId={renderedCurrentTab.id} />
-            )}
-            {!isHighlightsView && renderedCurrentTab.type === "transcript" && (
-              <Transcript
-                sessionId={sessionId}
-                scrollRef={scrollRef}
-                editMode={transcriptEditMode}
-                onEditModeChange={onTranscriptEditModeChange}
-              />
-            )}
           </div>
         </div>
       </div>
