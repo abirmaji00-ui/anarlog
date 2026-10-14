@@ -280,7 +280,9 @@ describe("NoteInput tab selection", () => {
     const { handleTabChange } = renderNoteInput();
 
     fireEvent.click(screen.getByRole("button", { name: "Highlights" }));
-    expect(screen.getByTestId("highlights-view").getAttribute("data-session-id")).toBe("session-1");
+    expect(
+      screen.getByTestId("highlights-view").getAttribute("data-session-id"),
+    ).toBe("session-1");
     expect(screen.queryByTestId("raw-editor")).toBeNull();
     expect(screen.getByTestId("current-tab").textContent).toBe("raw");
     expect(handleTabChange).not.toHaveBeenCalled();
