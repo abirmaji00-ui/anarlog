@@ -75,7 +75,6 @@ export function OuterHeader({
   const ended = !!endedAt && endedAt.getTime() <= now.getTime();
   const isRecording =
     sessionMode === "active" || sessionMode === "running_batch";
-  const isLiveMeeting = isRecording || sessionMode === "finalizing";
   const meetingOver = !isRecording && (ended || hasTranscript || audioExists);
   // Keep the persisted session title visible while the interview workspace is open.
   const showTitleInput = Boolean(tab);
