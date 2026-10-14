@@ -307,7 +307,7 @@ const NoteInputContent = forwardRef<
 
     useEffect(() => {
       search?.close();
-    }, [currentTab]);
+    }, [currentTab, isHighlightsView]);
 
     const handleContainerMouseDown: MouseEventHandler<HTMLDivElement> = (
       event,
