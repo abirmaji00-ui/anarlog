@@ -53,14 +53,12 @@ export function OuterHeader({
   tab,
   standaloneWindow = false,
   viewSwitcher,
-  showTitleInputWithViewSwitcher = false,
 }: {
   sessionId: string;
   currentView: EditorView;
   tab?: Extract<Tab, { type: "sessions" }>;
   standaloneWindow?: boolean;
   viewSwitcher?: React.ReactNode;
-  showTitleInputWithViewSwitcher?: boolean;
 }) {
   const { leftsidebar } = useShell();
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
@@ -79,11 +77,8 @@ export function OuterHeader({
     sessionMode === "active" || sessionMode === "running_batch";
   const isLiveMeeting = isRecording || sessionMode === "finalizing";
   const meetingOver = !isRecording && (ended || hasTranscript || audioExists);
-  const showTitleInput =
-    Boolean(tab) &&
-    (!viewSwitcher || showTitleInputWithViewSwitcher) &&
-    !isLiveMeeting &&
-    !meetingOver;
+  // Keep the persisted session title visible while the interview workspace is open.
+  const showTitleInput = Boolean(tab);
 
   return (
     <div
