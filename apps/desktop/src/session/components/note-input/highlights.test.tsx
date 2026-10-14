@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { HighlightsView } from "./highlights";
 
@@ -25,6 +25,10 @@ vi.mock("./meeting-screen-gallery", () => ({
 }));
 
 describe("HighlightsView", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   beforeEach(() => {
     hoisted.chatRecords = [];
     hoisted.screenRecords = [];
