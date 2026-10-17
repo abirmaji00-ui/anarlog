@@ -706,8 +706,7 @@ describe("RawEditor", () => {
     expect(screen.queryByRole("button", { name: "Standup" })).toBeNull();
   });
 
-  it("renders captured chat without mutating the active memo editor", () => {
-    const { rerender } = render(<RawEditor sessionId="session-1" />);
+  it("keeps captured chat out of Notes so Notes remain a dedicated editable surface", () => {
     hoisted.meetingChatRecords = [
       {
         id: "msg-1",
@@ -722,9 +721,9 @@ describe("RawEditor", () => {
       },
     ];
 
-    rerender(<RawEditor sessionId="session-1" />);
+    render(<RawEditor sessionId="session-1" />);
 
-    expect(screen.getByText("Review this together")).not.toBeNull();
+    expect(screen.queryByText("Review this together")).toBeNull();
     expect(hoisted.persistChange).not.toHaveBeenCalled();
   });
 

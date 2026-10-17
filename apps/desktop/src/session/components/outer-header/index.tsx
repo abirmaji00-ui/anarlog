@@ -32,6 +32,7 @@ import {
   type RemoteMeeting,
 } from "~/session/hooks/useRemoteMeeting";
 import { useSessionEvent } from "~/session/hooks/useSessionEvent";
+import { useSession } from "~/session/queries";
 import {
   usesWindowsStyleTitleBar,
   useWindowControlsGutter,
@@ -63,6 +64,9 @@ export function OuterHeader({
   const { leftsidebar } = useShell();
   const sessionMode = useListener((state) => state.getSessionMode(sessionId));
   const sessionEvent = useSessionEvent(sessionId);
+  const sessionTitle = useSession(sessionId)?.title?.trim();
+  const eventContextTitle = sessionEvent?.title?.trim();
+  const eventContextDescription = sessionEvent?.description?.trim();
   const hasTranscript = useHasTranscript(sessionId);
   const { audioExists } = useAudioPlayer();
   const now = useNow();
@@ -75,10 +79,9 @@ export function OuterHeader({
   const ended = !!endedAt && endedAt.getTime() <= now.getTime();
   const isRecording =
     sessionMode === "active" || sessionMode === "running_batch";
-  const isLiveMeeting = isRecording || sessionMode === "finalizing";
   const meetingOver = !isRecording && (ended || hasTranscript || audioExists);
-  const showTitleInput =
-    Boolean(tab) && !viewSwitcher && !isLiveMeeting && !meetingOver;
+  // Keep the persisted session title visible while the interview workspace is open.
+  const showTitleInput = Boolean(tab);
 
   return (
     <div
@@ -107,6 +110,15 @@ export function OuterHeader({
           <div className="max-w-56 min-w-0 shrink">
             <TitleInput key={tab.id} tab={tab} variant="breadcrumb" />
           </div>
+          {eventContextTitle && eventContextTitle !== sessionTitle ? (
+            <span
+              data-session-event-context
+              title={eventContextDescription || eventContextTitle}
+              className="text-muted-foreground hidden max-w-48 truncate text-xs xl:block"
+            >
+              {eventContextTitle}
+            </span>
+          ) : null}
         </div>
       ) : null}
       <div
