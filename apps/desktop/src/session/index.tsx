@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import { commands as fsSyncCommands } from "@anlg/plugin-fs-sync";
+import { toast } from "@anlg/ui/components/ui/toast";
 import { computeCurrentNoteTab } from "@anlg/utils/session";
 
 import { FloatingActionButton } from "./components/floating";
@@ -42,12 +43,11 @@ import { useSessionSharedNoteIds } from "~/shared-notes/event-keys";
 import { type Tab, useTabs } from "~/store/zustand/tabs";
 import { useListener } from "~/stt/contexts";
 import { ScheduledSessionAutoStart } from "~/stt/scheduled-session-auto-start";
-import { useUploadFile } from "~/stt/useUploadFile";
 import {
   consumeSessionImport,
   subscribeSessionImportRequests,
 } from "~/stt/session-import-intent";
-import { toast } from "@anlg/ui/components/ui/toast";
+import { useUploadFile } from "~/stt/useUploadFile";
 
 export function TabContentNote({
   standaloneWindow = false,
@@ -164,6 +164,7 @@ function TabContentNoteInner({
   lockOverlay: React.ReactNode;
 }) {
   const noteInputRef = React.useRef<NoteInputHandle>(null);
+  const [isHighlightsView, setIsHighlightsView] = React.useState(false);
 
   const sessionId = tab.id;
   const session = useSession(sessionId);
@@ -184,7 +185,9 @@ function TabContentNoteInner({
       void start()
         .then((selected) => {
           if (!selected) {
-            toast.info("No file selected. The interview session is ready to use.");
+            toast.info(
+              "No file selected. The interview session is ready to use.",
+            );
             return;
           }
           toast.success(
@@ -281,14 +284,19 @@ function TabContentNoteInner({
 
   const handleTabChange = React.useCallback(
     (view: typeof currentView) => {
+      if (isHighlightsView) {
+        noteInputRef.current?.setHighlightsView(false);
+      } else {
+        noteInputRef.current?.prepareForTabChange();
+      }
+      setIsHighlightsView(false);
       if (view.type !== "transcript") {
         blurActiveTranscriptEditor();
         setEditingTranscriptSessionId(null);
       }
-      noteInputRef.current?.prepareForTabChange();
       updateSessionTabState(tab, { ...tab.state, view });
     },
-    [tab, updateSessionTabState],
+    [isHighlightsView, tab, updateSessionTabState],
   );
   const handleTranscriptEditModeChange = React.useCallback(
     (editMode: boolean) => {
@@ -327,17 +335,19 @@ function TabContentNoteInner({
               tab={tab}
               standaloneWindow={standaloneWindow}
               viewSwitcher={
-                editorTabs.length > 1 ? (
-                  <SessionViewSwitcher
-                    sessionId={sessionId}
-                    editorTabs={editorTabs}
-                    currentTab={currentView}
-                    handleTabChange={handleTabChange}
-                    isTranscribing={isTranscribing}
-                    transcriptEditMode={transcriptEditMode}
-                    onTranscriptEditModeChange={handleTranscriptEditModeChange}
-                  />
-                ) : null
+                <SessionViewSwitcher
+                  sessionId={sessionId}
+                  editorTabs={editorTabs}
+                  currentTab={currentView}
+                  handleTabChange={handleTabChange}
+                  isTranscribing={isTranscribing}
+                  transcriptEditMode={transcriptEditMode}
+                  onTranscriptEditModeChange={handleTranscriptEditModeChange}
+                  highlightsActive={isHighlightsView}
+                  onHighlightsViewChange={(active) =>
+                    noteInputRef.current?.setHighlightsView(active)
+                  }
+                />
               }
             />
           )
@@ -387,6 +397,7 @@ function TabContentNoteInner({
                 sessionMode={sessionMode}
                 transcriptEditMode={transcriptEditMode}
                 onTranscriptEditModeChange={handleTranscriptEditModeChange}
+                onHighlightsViewStateChange={setIsHighlightsView}
                 hideHeader
               />
             ) : (

@@ -17,17 +17,19 @@ import {
 
 export function HeaderViewRaw({
   isActive,
+  label,
   onClick = () => {},
   sessionId,
   standalone = false,
 }: {
   isActive: boolean;
+  label?: string;
   onClick?: () => void;
   sessionId: string;
   standalone?: boolean;
 }) {
   const session = useSession(sessionId);
-  const standaloneLabel = standalone ? session?.title.trim() : undefined;
+  const standaloneLabel = standalone ? session?.title.trim() : label;
 
   if (!isActive) {
     return (
@@ -104,8 +106,8 @@ function HeaderViewRawActive({
         text: "Copy",
         action: () => {
           void copyTextToClipboard(memoMarkdown, {
-            success: "Memo copied to clipboard",
-            error: "Failed to copy memo",
+            success: "Note copied to clipboard",
+            error: "Failed to copy note",
           });
         },
         disabled: memoMarkdown.length === 0,

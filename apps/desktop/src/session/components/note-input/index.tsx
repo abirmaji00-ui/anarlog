@@ -8,6 +8,7 @@ import {
   useEffect,
   useImperativeHandle,
   useRef,
+  useState,
 } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
@@ -16,6 +17,7 @@ import { cn } from "@anlg/utils";
 
 import { Enhanced } from "./enhanced";
 import { Header, SessionViewSwitcher, useEditorTabs } from "./header";
+import { HighlightsView } from "./highlights";
 import { RawEditor } from "./raw";
 import { SearchBar } from "./search/bar";
 import { useSearch } from "./search/context";
@@ -42,6 +44,7 @@ export interface NoteInputHandle {
   replaceContent: (content: JSONContent) => void;
   flushPendingChanges: () => void;
   prepareForTabChange: () => void;
+  setHighlightsView: (active: boolean) => void;
 }
 
 type NoteInputProps = {
@@ -59,6 +62,7 @@ type NoteInputProps = {
   sessionMode?: SessionMode;
   transcriptEditMode?: boolean;
   onTranscriptEditModeChange?: (editMode: boolean) => void;
+  onHighlightsViewStateChange?: (active: boolean) => void;
 };
 
 export function shouldShowTranscriptTabSpinner(sessionMode: SessionMode) {
@@ -157,11 +161,26 @@ const NoteInputContent = forwardRef<
       sessionMode,
       transcriptEditMode = false,
       onTranscriptEditModeChange,
+      onHighlightsViewStateChange,
     },
     ref,
   ) => {
     const internalEditorRef = useRef<NoteEditorRef>(null);
+    const highlightsScrollTopRef = useRef<number | null>(null);
+    const setHighlightsViewRef = useRef<(active: boolean) => void>(() => {});
     const sessionId = tab.id;
+    const [isHighlightsView, setIsHighlightsView] = useState(false);
+    const isHighlightsViewRef = useRef(false);
+    const currentTabKey =
+      currentTab.type === "enhanced" || currentTab.type === "shared"
+        ? `${currentTab.type}:${currentTab.id}`
+        : currentTab.type;
+    useEffect(() => {
+      isHighlightsViewRef.current = false;
+      setIsHighlightsView(false);
+      onHighlightsViewStateChange?.(false);
+    }, [sessionId, currentTabKey, onHighlightsViewStateChange]);
+
     const deferredCurrentTab = useDeferredValue(currentTab);
     const renderedCurrentTab = editorTabs.some((editorTab) =>
       isSameEditorView(editorTab, deferredCurrentTab),
@@ -197,12 +216,21 @@ const NoteInputContent = forwardRef<
         flushPendingChanges: () =>
           internalEditorRef.current?.flushPendingChanges(),
         prepareForTabChange: onBeforeTabChange,
+        setHighlightsView: (active) => setHighlightsViewRef.current(active),
       }),
       [currentTab, onBeforeTabChange],
     );
 
     const handleTabChange = useCallback(
       (tabView: TabEditorView) => {
+        const wasHighlightsView = isHighlightsViewRef.current;
+        if (wasHighlightsView) {
+          setHighlightsViewRef.current(false);
+        } else {
+          isHighlightsViewRef.current = false;
+          setIsHighlightsView(false);
+          onHighlightsViewStateChange?.(false);
+        }
         if (
           isSameEditorView(tabView, currentTab) ||
           isSameEditorView(tabView, renderedCurrentTab)
@@ -210,11 +238,48 @@ const NoteInputContent = forwardRef<
           return;
         }
 
-        onBeforeTabChange();
+        if (!wasHighlightsView) {
+          onBeforeTabChange();
+        }
         commitTabChange(tabView);
       },
-      [commitTabChange, currentTab, onBeforeTabChange, renderedCurrentTab],
+      [
+        commitTabChange,
+        currentTab,
+        onBeforeTabChange,
+        onHighlightsViewStateChange,
+        renderedCurrentTab,
+      ],
     );
+
+    const handleHighlightsViewChange = useCallback(
+      (active: boolean) => {
+        if (active === isHighlightsViewRef.current) {
+          return;
+        }
+        isHighlightsViewRef.current = active;
+        if (active) {
+          highlightsScrollTopRef.current = scrollRef.current?.scrollTop ?? null;
+          // Flush editor edits before replacing the current editor surface with Highlights.
+          internalEditorRef.current?.flushPendingChanges();
+          onBeforeTabChange();
+        } else {
+          const previousScrollTop = highlightsScrollTopRef.current;
+          if (previousScrollTop !== null) {
+            requestAnimationFrame(() => {
+              if (scrollRef.current) {
+                scrollRef.current.scrollTop = previousScrollTop;
+              }
+            });
+            highlightsScrollTopRef.current = null;
+          }
+        }
+        setIsHighlightsView(active);
+        onHighlightsViewStateChange?.(active);
+      },
+      [onBeforeTabChange, onHighlightsViewStateChange, scrollRef],
+    );
+    setHighlightsViewRef.current = handleHighlightsViewChange;
 
     const handleAdjacentViewShortcut = useCallback(
       (direction: "previous" | "next") => {
@@ -274,14 +339,16 @@ const NoteInputContent = forwardRef<
     const search = useSearch();
     const showSearchBar = search?.isVisible ?? false;
     const isEditableTab =
-      renderedCurrentTab.type === "enhanced" ||
-      renderedCurrentTab.type === "raw";
+      !isHighlightsView &&
+      (renderedCurrentTab.type === "enhanced" ||
+        renderedCurrentTab.type === "raw");
     const isSearchableTab =
-      isEditableTab || renderedCurrentTab.type === "transcript";
+      !isHighlightsView &&
+      (isEditableTab || renderedCurrentTab.type === "transcript");
 
     useEffect(() => {
       search?.close();
-    }, [currentTab]);
+    }, [currentTab, isHighlightsView]);
 
     const handleContainerMouseDown: MouseEventHandler<HTMLDivElement> = (
       event,
@@ -347,6 +414,8 @@ const NoteInputContent = forwardRef<
                 currentTab={renderedCurrentTab}
                 handleTabChange={handleTabChange}
                 isTranscribing={shouldShowTranscriptSpinner}
+                highlightsActive={isHighlightsView}
+                onHighlightsViewChange={handleHighlightsViewChange}
               />
               <Header sessionId={sessionId} />
             </div>
@@ -370,46 +439,49 @@ const NoteInputContent = forwardRef<
             className={cn([
               "h-full px-3",
               "pt-2",
-              renderedCurrentTab.type === "transcript"
+              !isHighlightsView && renderedCurrentTab.type === "transcript"
                 ? "overflow-hidden pb-0"
                 : "scroll-pb-20 overflow-x-hidden overflow-y-auto pb-24",
             ])}
           >
-            {renderedCurrentTab.type === "enhanced" && (
-              <Enhanced
-                ref={internalEditorRef}
-                sessionId={sessionId}
-                sessionTitle={sessionTitle}
-                enhancedNoteId={renderedCurrentTab.id}
-                onNavigateToTitle={onNavigateToTitle}
-                onViewReady={handleSessionViewReady}
-                onViewDisposed={handleSessionViewDisposed}
-              />
-            )}
-            {renderedCurrentTab.type === "raw" && (
-              <RawEditor
-                ref={internalEditorRef}
-                sessionId={sessionId}
-                rawMd={rawMd}
-                sessionTitle={sessionTitle}
-                eventTitle={eventTitle}
-                eventDescription={eventDescription}
-                onNavigateToTitle={onNavigateToTitle}
-                onViewReady={handleSessionViewReady}
-                onViewDisposed={handleSessionViewDisposed}
-              />
-            )}
-            {renderedCurrentTab.type === "shared" && (
-              <SharedNoteSummary shareId={renderedCurrentTab.id} />
-            )}
-            {renderedCurrentTab.type === "transcript" && (
-              <Transcript
-                sessionId={sessionId}
-                scrollRef={scrollRef}
-                editMode={transcriptEditMode}
-                onEditModeChange={onTranscriptEditModeChange}
-              />
-            )}
+            <div hidden={isHighlightsView} className="min-h-full">
+              {renderedCurrentTab.type === "enhanced" && (
+                <Enhanced
+                  ref={internalEditorRef}
+                  sessionId={sessionId}
+                  sessionTitle={sessionTitle}
+                  enhancedNoteId={renderedCurrentTab.id}
+                  onNavigateToTitle={onNavigateToTitle}
+                  onViewReady={handleSessionViewReady}
+                  onViewDisposed={handleSessionViewDisposed}
+                />
+              )}
+              {renderedCurrentTab.type === "raw" && (
+                <RawEditor
+                  ref={internalEditorRef}
+                  sessionId={sessionId}
+                  rawMd={rawMd}
+                  sessionTitle={sessionTitle}
+                  eventTitle={eventTitle}
+                  eventDescription={eventDescription}
+                  onNavigateToTitle={onNavigateToTitle}
+                  onViewReady={handleSessionViewReady}
+                  onViewDisposed={handleSessionViewDisposed}
+                />
+              )}
+              {renderedCurrentTab.type === "shared" && (
+                <SharedNoteSummary shareId={renderedCurrentTab.id} />
+              )}
+              {renderedCurrentTab.type === "transcript" && (
+                <Transcript
+                  sessionId={sessionId}
+                  scrollRef={scrollRef}
+                  editMode={transcriptEditMode}
+                  onEditModeChange={onTranscriptEditModeChange}
+                />
+              )}
+            </div>
+            {isHighlightsView ? <HighlightsView sessionId={sessionId} /> : null}
           </div>
         </div>
       </div>
