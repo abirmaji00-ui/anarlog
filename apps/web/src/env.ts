@@ -23,11 +23,11 @@ export const env = createEnv({
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
     WORKSPACE_SHARE_PROXY_SECRET: z.string().min(1).optional(),
 
-    STRIPE_SECRET_KEY: requiredInProd(z.string().min(1)),
-    STRIPE_MONTHLY_PRICE_ID: requiredInProd(z.string().min(1)),
-    STRIPE_YEARLY_PRICE_ID: requiredInProd(z.string().min(1)),
+    STRIPE_SECRET_KEY: z.string().min(1).optional(),
+    STRIPE_MONTHLY_PRICE_ID: z.string().min(1).optional(),
+    STRIPE_YEARLY_PRICE_ID: z.string().min(1).optional(),
 
-    LOOPS_KEY: requiredInProd(z.string().min(1)),
+    LOOPS_KEY: z.string().min(1).optional(),
 
     GITHUB_TOKEN: z.string().optional(),
   },
@@ -42,7 +42,7 @@ export const env = createEnv({
       : z.string().default("https://api.anarlog.so"),
     VITE_SUPABASE_URL: requiredInProd(z.string().min(1)),
     VITE_SUPABASE_ANON_KEY: requiredInProd(z.string().min(1)),
-    VITE_POSTHOG_API_KEY: requiredInProd(z.string().min(1)),
+    VITE_POSTHOG_API_KEY: z.string().min(1).optional(),
     VITE_POSTHOG_HOST: z.string().default("https://us.i.posthog.com"),
     VITE_OTEL_EXPORTER_OTLP_ENDPOINT: z.url().optional(),
     VITE_OTEL_SAMPLE_RATE: z.coerce.number().int().positive().default(10),
