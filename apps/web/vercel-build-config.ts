@@ -703,18 +703,4 @@ export const vercelBuildConfig = {
     formats: ["image/webp" as const],
     minimumCacheTTL: 3600,
   },
-  crons: [
-    {
-      path: "/api/cron/loops-account-onboarding",
-      schedule: "*/5 * * * *",
-    },
-    {
-      path: "/api/cron/loops-trial-ending-reminders",
-      schedule: "*/5 * * * *",
-    },
-    {
-      path: "/api/cron/posthog-account-events",
-      schedule: "*/5 * * * *",
-    },
-  ],
 };

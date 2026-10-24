@@ -9,9 +9,10 @@ Successful web CI runs on `main` deploy automatically. Pull requests run checks
 without deploying production. Manual dispatch and desktop-release APT publishing
 use the same workflow; version calculation, deployment, and tagging are serialized.
 
-`vercel-build-config.ts` owns CDN redirects, documentation proxies, image widths,
-and the three five-minute cron schedules. The build preserves prerendered pages,
-Pagefind, the sitemap, Sharp, and the fonts used by social preview images.
+`vercel-build-config.ts` owns CDN redirects, documentation proxies, and image
+widths. Cron endpoint handlers remain available but are not registered as
+Vercel schedules. The build preserves prerendered pages, Pagefind, the sitemap,
+Sharp, and the fonts used by social preview images.
 
 ## Production configuration
 
@@ -37,8 +38,7 @@ existing job leases and delivery idempotency remain in place.
 
 1. Provision the Vercel project and environment. Build a preview and verify
    sign-in, checkout, shared notes, OAuth callbacks, images, social previews,
-   search, documentation discovery, APT downloads, and redirects. The five-minute
-   schedules require a Vercel plan that supports that frequency.
+   search, documentation discovery, APT downloads, and redirects.
 2. Deploy production with jobs disabled. Move the Anarlog web domains to Vercel
    after verifying the deployment. Preserve DNS for the separate API, billing,
    documentation, and model services. Historical domain redirect rules are
