@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { generateSitemap } from "tanstack-router-sitemap";
 import { defineConfig, type UserConfig } from "vite";
 import { publishedChangelogs } from "./changelog-build.ts";
+import { canResize } from "./src/lib/image-cdn.ts";
 import { getSitemap } from "./src/utils/sitemap";
 import { vercelBuildConfig } from "./vercel-build-config";
 
@@ -44,6 +45,8 @@ const config = defineConfig(async ({ command }): Promise<UserConfig> => {
               "/download/",
               "/blog",
               "/blog/",
+              "/guides/transcription",
+              "/guides/transcription/",
               "/blog/char-is-now-anarlog",
               "/blog/char-is-now-anarlog/",
             ].includes(path);
@@ -73,11 +76,7 @@ const config = defineConfig(async ({ command }): Promise<UserConfig> => {
               request.url ?? "/",
               "http://localhost",
             ).searchParams.get("url");
-            if (
-              !source?.startsWith("/") ||
-              source.startsWith("//") ||
-              source.startsWith("/_vercel/")
-            ) {
+            if (!source || !canResize(source)) {
               response.statusCode = 400;
             } else {
               response.statusCode = 307;

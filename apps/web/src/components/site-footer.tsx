@@ -17,6 +17,7 @@ const footerGroups = [
     links: [
       { label: "About", to: "/about/" },
       { label: "Blog", to: "/blog/" },
+      { label: "Transcription guides", to: "/guides/transcription/" },
       { label: "Changelog", to: "/changelog/" },
       { label: "Docs", href: "https://docs.anarlog.so" },
       { label: "Status", href: "https://status.anarlog.so" },
@@ -28,7 +29,7 @@ const footerGroups = [
       { label: "GitHub", href: "https://github.com/fastrepl/anarlog" },
       { label: "X", href: "https://x.com/anarlogapp" },
       { label: "LinkedIn", href: "https://www.linkedin.com/company/anarlog/" },
-      { label: "Discord", to: "/discord/" },
+      { label: "Discord", href: "https://discord.gg/Vk882WS3gF" },
       { label: "Reddit", href: "https://www.reddit.com/r/anarlog/" },
     ],
   },

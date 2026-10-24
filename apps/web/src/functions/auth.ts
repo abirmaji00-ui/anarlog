@@ -299,7 +299,7 @@ async function mintDesktopSessionFromEmail(email: string) {
 }
 
 export const doAuth = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     shared.extend({
       provider: z.enum(["apple", "azure", "google", "github"]),
     }),
@@ -325,7 +325,7 @@ export const doAuth = createServerFn({ method: "POST" })
   });
 
 export const doSsoAuth = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     shared.extend({
       domain: z.string().trim().min(1).max(320),
     }),
@@ -357,7 +357,7 @@ export const doSsoAuth = createServerFn({ method: "POST" })
   });
 
 export const doMagicLinkAuth = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     shared.extend({
       email: z.string().email(),
       captchaToken: z.string().min(1).max(4096).optional(),
@@ -429,7 +429,7 @@ export const signOutEverywhereFn = createServerFn({ method: "POST" }).handler(
 );
 
 export const exchangeOAuthCode = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     z.object({
       code: z.string(),
       flow: z.enum(["desktop", "web"]).default("web"),
@@ -487,7 +487,7 @@ export const exchangeOAuthCode = createServerFn({ method: "POST" })
   });
 
 export const doPasswordSignUp = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     shared.extend({
       name: z.string().trim().min(1).max(100),
       email: z.string().email(),
@@ -555,7 +555,7 @@ export const doPasswordSignUp = createServerFn({ method: "POST" })
   });
 
 export const doPasswordSignIn = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     shared.extend({
       email: z.string().email(),
       password: z.string().min(1),
@@ -596,7 +596,7 @@ export const doPasswordSignIn = createServerFn({ method: "POST" })
   });
 
 export const exchangeOtpToken = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     z.object({
       token_hash: z.string(),
       type: z.enum([
@@ -682,7 +682,7 @@ export const createDesktopSession = createServerFn({ method: "POST" }).handler(
 );
 
 export const doPasswordResetRequest = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     z.object({
       email: z.string().email(),
       flow: z.enum(["desktop", "web"]).default("web"),
@@ -714,7 +714,7 @@ export const doPasswordResetRequest = createServerFn({ method: "POST" })
   });
 
 export const doUpdatePassword = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     z.object({
       password: z.string().min(6),
       flow: z.enum(["desktop", "web"]).default("web"),
@@ -746,7 +746,7 @@ export const doUpdatePassword = createServerFn({ method: "POST" })
   });
 
 export const updateUserEmail = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ email: z.email() }))
+  .validator(z.object({ email: z.email() }))
   .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
 

@@ -20,9 +20,16 @@ import { MeetingImportSync } from "~/services/meeting-import-sync";
 import { getOrCreateSessionForEventId } from "~/session/queries";
 import { WorkspaceInvitationToasts } from "~/settings/team/invitation-toast";
 import { useMyWorkspacesWithMirror } from "~/settings/team/mirror";
+import { openFoldersFromNavigation } from "~/shared/folders-navigation";
+import { leaveAllOverlayTabs } from "~/shared/leave-overlay-tab";
 import { useZoomShortcuts } from "~/shared/zoom";
+import { useSidebarNotes } from "~/sidebar/note-filter";
 import { UndoDeleteToast } from "~/sidebar/toast/undo-delete-toast";
-import { isTabInputSupported, useTabs } from "~/store/zustand/tabs";
+import {
+  isTabInputSupported,
+  RETURN_ORIGIN_TAB_TYPES,
+  useTabs,
+} from "~/store/zustand/tabs";
 
 export default function MainAppLayout() {
   useNavigationEvents();
@@ -74,6 +81,12 @@ const useNavigationEvents = () => {
           type: "contacts",
           state: { selected: { type: "organization", id } },
         });
+      } else if (type === "folder") {
+        useSidebarNotes.getState().setView("mine", id);
+        const tab = useTabs.getState().currentTab;
+        if (tab && RETURN_ORIGIN_TAB_TYPES.includes(tab.type)) {
+          leaveAllOverlayTabs();
+        }
       }
     };
     (window as any).__ANARLOG_NAVIGATE__ = navigateFromNative;
@@ -123,7 +136,7 @@ const useNavigationEvents = () => {
         } else if (payload.path === "/app/settings") {
           const tab = (payload.search?.tab as string) ?? "app";
           openNew({ type: "settings", state: { tab } });
-        } else {
+        } else if (!openFoldersFromNavigation(payload, openNew)) {
           void navigate({
             to: payload.path,
             search: payload.search ?? undefined,

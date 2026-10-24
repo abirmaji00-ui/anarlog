@@ -7,6 +7,8 @@ import { CaretDown, CircleNotch } from "@anlg/ui/components/icons";
 import { Button } from "@anlg/ui/components/ui/button";
 import { cn } from "@anlg/utils";
 
+import { LogEntry } from "~/shared/log-entry";
+
 async function readCloudsyncLog() {
   const result = await tracingCommands.logContent(true);
   if (result.status === "error") {
@@ -74,13 +76,13 @@ export function SyncLog() {
               />
             </div>
           ) : logQuery.data.length ? (
-            <ol className="divide-border/60 max-h-64 divide-y overflow-y-auto font-mono text-[11px] leading-5">
+            <ol className="select-text-deep divide-border/60 max-h-64 divide-y overflow-y-auto font-mono text-[11px] leading-5">
               {logQuery.data.map((line, index) => (
                 <li
                   key={`${index}-${line}`}
                   className="py-2 break-words whitespace-pre-wrap first:pt-0 last:pb-0"
                 >
-                  {line}
+                  <LogEntry text={line} />
                 </li>
               ))}
             </ol>

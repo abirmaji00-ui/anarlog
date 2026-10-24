@@ -177,6 +177,10 @@ async fn migrations_apply_cleanly() {
             "humans",
             "local_library_attachment_state",
             "local_library_connections",
+            "local_meeting_purges",
+            "local_recording_import_jobs",
+            "local_recording_import_worker",
+            "managed_app_settings",
             "migration_import_items",
             "migration_import_runs",
             "migration_import_targets",
@@ -582,11 +586,10 @@ async fn repair_migration_recreates_missing_templates_table() {
 
     anlg_db_migrate::migrate(&db, schema()).await.unwrap();
 
-    let template_ids: Vec<String> =
-        sqlx::query_scalar("SELECT id FROM templates ORDER BY id")
-            .fetch_all(db.pool())
-            .await
-            .unwrap();
+    let template_ids: Vec<String> = sqlx::query_scalar("SELECT id FROM templates ORDER BY id")
+        .fetch_all(db.pool())
+        .await
+        .unwrap();
 
     assert_eq!(
         template_ids,

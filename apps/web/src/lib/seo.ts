@@ -12,6 +12,44 @@ export function getCanonicalUrl(path = "/") {
   const withSlash = normalized.endsWith("/") ? normalized : `${normalized}/`;
   return `${ANARLOG_SITE_URL}${withSlash}`;
 }
+
+export function getPublicPageLinkHref(href: string) {
+  if (
+    href.startsWith("//") ||
+    (!href.startsWith("/") && !href.startsWith(`${ANARLOG_SITE_URL}/`))
+  ) {
+    return href;
+  }
+
+  let url: URL;
+  try {
+    url = new URL(href, ANARLOG_SITE_URL);
+  } catch {
+    return href;
+  }
+  if (url.origin !== ANARLOG_SITE_URL) return href;
+  const isPublicPage =
+    url.pathname.startsWith("/blog/") ||
+    url.pathname.startsWith("/guides/") ||
+    [
+      "/blog",
+      "/download",
+      "/pricing",
+      "/enterprise",
+      "/security",
+      "/about",
+      "/privacy",
+      "/terms",
+      "/changelog",
+    ].includes(url.pathname);
+
+  if (!isPublicPage || url.pathname.endsWith("/")) return href;
+
+  url.pathname += "/";
+  return href.startsWith("/")
+    ? `${url.pathname}${url.search}${url.hash}`
+    : url.href;
+}
 export const ROOT_TITLE = "Private AI Meeting Notetaker | Abrish AI";
 export const ROOT_DESCRIPTION =
   "Abrish AI is the local-first alternative to Granola. Take private meeting notes, get editable AI summaries, and keep your data and AI stack yours.";
@@ -84,7 +122,7 @@ export function getSoftwareApplicationJsonLd({
     name: "Abrish AI",
     url,
     description,
-    applicationCategory: "ProductivityApplication",
+    applicationCategory: "BusinessApplication",
     operatingSystem: ["macOS", "Windows", "Linux"],
     downloadUrl: getCanonicalUrl("/download"),
     publisher: getOrganizationJsonLd(),
